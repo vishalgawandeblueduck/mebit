@@ -1,6 +1,6 @@
 from moviepy.editor import *
 import os
-import cv2
+
 class VideoEditor:
     def create_video(folder_path, output_path, output_width = 1280, output_height=720):
         if not os.path.exists(folder_path):
@@ -34,15 +34,15 @@ class VideoEditor:
         background_video = VideoFileClip(background_video_path, audio=False).subclip(start,end)
         w, h = moviesize = background_video.size
 
-        foreground_video = VideoFileClip(foreground_video_path).subclip(start, end).resize((w/2,h))
+        foreground_video = VideoFileClip(foreground_video_path).subclip(start, end).resize((w/1.5,h))
         final = CompositeVideoClip([ background_video.set_position('center'),foreground_video.set_position('center')])
         final.write_videofile(output_path, fps=24, codec='libx264')
         #display(final.ipython_display(fps=final.fps, autoplay=True))
 
   
-
-
-VideoEditor.create_video("resized", "output_video/create_video.mp4")
+    
+#VideoEditor.create_video("resized", "output_video/create_video.mp4")
 #VideoEditor.add_text('output_video/create_video.mp4',"helllooo","output_video/add_text.mp4")
 #VideoEditor.video_over_video('output_video/create_video.mp4','video.mp4','output_video/video_over_video_op.mp4',5)
+
 
