@@ -1,7 +1,7 @@
 # mebit
-##flask_app.py contains the API for video editing
+## flask_app.py contains the API for video editing
 
-##video_editing_pipeline.py 
+## video_editing_pipeline.py 
 contains the python functions for video editing
 
 1)Create video from images
