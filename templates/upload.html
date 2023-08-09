@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Generation</title>
+</head>
+<body>
+    <h1>Generate Video</h1>
+    <form action="/" method="post" enctype="multipart/form-data">
+        <label for="folder_path">Folder Path:</label>
+        <input type="file" name="folder_path" class="file" data-browse-on-zone-click="true" data-show-remove="false" data-show-upload="false" webkitdirectory required><br>
+    
+        <label for="text">Text:</label>
+        <input type="text" name="text" required><br>
+
+        <label for="foreground_video">Foreground Video:</label>
+        <input type="file" name="foreground_video" accept="video/*" required><br>
+
+        <label for="output_width">Output Width:</label>
+        <input type="number" name="output_width" required><br>
+
+        <label for="output_height">Output Height:</label>
+        <input type="number" name="output_height" required><br>
+
+        <input type="submit" value="Generate and Download">
+    </form>
+</body>
+</html>
