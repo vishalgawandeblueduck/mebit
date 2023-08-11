@@ -1,144 +1,71 @@
-import flask
+
+from flask import *
+import os
+import tempfile
+from moviepy.editor import ImageClip, concatenate_videoclips
+from skimage.filters import gaussian
 from moviepy.editor import *
 
-app = flask.Flask(__name__)
-
-@app.route("/create_video", methods=["POST"])
-def create_video():
-   
-
-    data = flask.request.get_json()
-    folder_path = data["folder_path"]
-    output_path = data["output_path"]
-    output_width = data["output_width"]
-    output_height = data["output_height"]
-
-    if not os.path.exists(folder_path):
-        print(f"Error: Folder '{folder_path}' does not exist.")
-        return ""
-
-    image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))
-                    and f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
-    image_files.sort()
-
+app = Flask(__name__)
+def blur(image):
+    """ Returns a blurred (radius=4 pixels) version of the image """    
+    return gaussian(image.astype(float), sigma=4)
+def create_video(image_files,text, output_path,portrait_video, output_width=1280, output_height=720):
     clips = []
-    for m in image_files:
-        image_path = os.path.join(folder_path, m)
-        image_clip = ImageClip(image_path).set_duration(1)
+    for image_file in image_files:
+        image_clip = ImageClip(image_file).set_duration(1)
         image_clip = image_clip.resize((output_width, output_height))
         clips.append(image_clip)
 
     concat_clip = concatenate_videoclips(clips, method="compose")
-    concat_clip.write_videofile(output_path, fps=24)
-    print('create video')
-    return output_path
+    txt_clip = TextClip(text, fontsize = 70, color = 'white').set_duration(concat_clip.duration)
+    txt_clip = txt_clip.set_pos('bottom')
+    video1 = CompositeVideoClip([concat_clip, txt_clip])
+    #video1.write_videofile(output_path, fps=24)
+	
 
-@app.route("/add_text", methods=["POST"])
-def add_text():
-   
+    #background_video = VideoFileClip(video1).subclip(0,5)
+    w, h = moviesize = video1.size
 
-    data = flask.request.get_json()
-    input_video = data["input_video"]
-    text = data["text"]
-    output_path = data["output_path"]
-    
+    foreground_video = VideoFileClip(portrait_video).subclip(0, 5).resize((w/2,h))
+    background_video =  foreground_video.set_duration(foreground_video.duration)
+    video2 = CompositeVideoClip([ video1.set_position('center'),foreground_video.set_position('center')])
+    final = concatenate_videoclips([video1, video2])
+    final.write_videofile(output_path, fps=24)
 
-    input_video_clip = VideoFileClip(input_video)
-    txt_clip = TextClip(text, fontsize=50, color='white')
-    txt_clip = txt_clip.set_pos('bottom').set_duration(2)
-    video = CompositeVideoClip([input_video_clip, txt_clip])
-    video.write_videofile(output_path, fps=24)
 
-    return output_path
-@app.route("/video_over_video", methods=["POST"])
-def video_over_video():
-    
+@app.route('/')
+def main():
+    return render_template("upload.html")
 
-    data = flask.request.get_json()
-    background_video_path = data["background_video"]
-    foreground_video_path = data["foreground_video"]
-    output_path = data["output_path"]
-    
-    background_video = VideoFileClip(background_video_path, audio=False).subclip(0, 5)
-    w, h = moviesize = background_video.size
+@app.route('/upload', methods=['POST'])
+def upload():
+    if request.method == 'POST':
+        files = request.files.getlist("file")
+        text = request.form.get("text")
+        portrait_video = request.files['portrait_video'].filename
+        video_length = request.form.get('video_length')
+        video_width = request.form.get('video_width')
+        image_files = []
+        for file in files:
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file.write(file.read())
+                image_files.append(temp_file.name)
 
-    foreground_video = VideoFileClip(foreground_video_path).subclip(0, 5).resize((w / 1.5, h))
-    final = CompositeVideoClip([background_video.set_position('center'), foreground_video.set_position('center')])
-    final.write_videofile(output_path, fps=24, codec='libx264')
-    return output_path
+        output_path = 'output.mp4'  # Temporary output path
+        create_video(image_files, text,output_path, portrait_video,video_length,video_width)
 
-@app.route("/create_add_text", methods=["POST"])
-def create_add_text():
-            
-            data = flask.request.get_json()
-            folder_path = data["folder_path"]
-            output_path = data["output_path"]
-            text = data["text"]
-            output_width = data["output_width"]
-            output_height = data["output_height"]
+        for image_file in image_files:
+            os.remove(image_file)
 
-            if not os.path.exists(folder_path):
-                print(f"Error: Folder '{folder_path}' does not exist.")
-                return
+        with open(output_path, 'rb') as video_file:
+            video_data = video_file.read()
+        os.remove(output_path)  # Remove the temporary video file
 
-            image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))
-                            and f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
-            image_files.sort()
+        response = make_response(video_data)
+        response.headers.set('Content-Type', 'video/mp4')
+        response.headers.set('Content-Disposition', 'attachment', filename='output.mp4')
+        return response
 
-            clips = []
-            for m in image_files:
-                image_path = os.path.join(folder_path, m)
-                image_clip = ImageClip(image_path).set_duration(1)
-                image_clip = image_clip.resize((output_width, output_height))
-                clips.append(image_clip)
-
-            concat_clip = concatenate_videoclips(clips, method="compose")
-
-            txt_clip = TextClip(text, fontsize = 70, color = 'white')
-            txt_clip = txt_clip.set_pos('bottom').set_duration(2)
-            video = CompositeVideoClip([concat_clip, txt_clip])
-            video.write_videofile(output_path, fps=24)  
-            return output_path
-
-@app.route("/final_video", methods=["POST"])
-def final_video():
-            data = flask.request.get_json()
-            folder_path = data["folder_path"]
-            output_path = data["output_path"]
-            text = data["text"]
-            foreground_video_path = data["foreground_video_path"]
-            output_width = data["output_width"]
-            output_height = data["output_height"]
-
-            if not os.path.exists(folder_path):
-                print(f"Error: Folder '{folder_path}' does not exist.")
-                return
-
-            image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))
-                            and f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
-            image_files.sort()
-
-            clips = []
-            for m in image_files:
-                image_path = os.path.join(folder_path, m)
-                image_clip = ImageClip(image_path).set_duration(1)
-                image_clip = image_clip.resize((output_width, output_height))
-                clips.append(image_clip)
-
-            concat_clip = concatenate_videoclips(clips, method="compose")
-
-            #clip = VideoFileClip(input_video)
-            txt_clip = TextClip(text, fontsize = 70, color = 'white')
-            txt_clip = txt_clip.set_pos('bottom').set_duration(2)
-            video1 = CompositeVideoClip([concat_clip, txt_clip])
-
-            #background_video = VideoFileClip(video1).subclip(0,5)
-            w, h = moviesize = video1.size
-
-            foreground_video = VideoFileClip(foreground_video_path).subclip(0, 5).resize((w/2,h))
-            video2 = CompositeVideoClip([ video1.set_position('center'),foreground_video.set_position('center')])
-            final = concatenate_videoclips([video1, video2])
-            final.write_videofile(output_path, fps=24)
-            return output_path
-if __name__ == "__main__":
-    app.run(debug=True, port=3045)
+if __name__ == '__main__':
+    app.run(debug=True,port=3044)
