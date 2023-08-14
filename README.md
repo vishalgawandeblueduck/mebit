@@ -1,5 +1,24 @@
 # mebit
-## flask_app.py contains the API for video editing
+
+## Installation and Usage:
+#### flask_app.py contains the API for video editing.<br>
+clone the repository using :
+
+      git clone https://github.com/vishalgawandeblueduck/mebit.git
+
+#### All the dependecies are listed in the requirements file.<br>
+run this command: 
+
+    pip install -r requirements.txt
+
+#### Run the flask application:
+
+    python flask_app.py
+
+####
+  
+
+
 
 ## video_editing_pipeline.py 
 contains the python functions for video editing
