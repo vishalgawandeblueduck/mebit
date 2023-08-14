@@ -3,3 +3,4 @@ moviepy==1.0.3
 imageio==2.31.1
 Flask==2.3.2
 temp==2020.7.2
+imagemagick
