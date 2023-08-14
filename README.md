@@ -1,5 +1,5 @@
 # mebit
-
+## Using Flask web-app
 ## Installation and Usage:
 #### flask_app.py contains the API for video editing.<br>
 clone the repository using :
@@ -15,8 +15,14 @@ run this command:
 
     python flask_app.py
 
-####
-  
+#### API List:
+All the supported API's are:
+1) create_merge: creates video using images, adds text over video and merges another video.<br>
+   (video is atomatically downloaded in the downloads folder)
+
+2) create_image_video : creates video using provided images collection.
+
+3) add_text : addes text to any pre-existing video
 
 
 
