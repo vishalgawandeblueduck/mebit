@@ -13,7 +13,7 @@ run this command:
 
 #### Run the flask application:
 
-    python flask_app.py
+    python flask_app1.py
 
 #### API List:
 All the supported API's are:
