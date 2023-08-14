@@ -1,0 +1,26 @@
+<html>
+<head>
+	<title>Video Editing </title>
+</head>
+<body>
+	<form action = "/create_merge" method="POST" enctype="multipart/form-data">
+        
+		<label for="text">Upload Images:</label>
+		<input type="file" name="file" multiple /><br><br>
+
+        <label for="text">Text:</label>
+        <input type="text" name="text" required><br><br>
+
+		<label for="portrait_video">Upload second Video:</label>
+        <input type="file" name="portrait_video" accept="video/*" required><br><br>
+
+        <label for="video_length">Output Width:</label>
+        <input type="number" name="video_length" required><br><br>
+
+        <label for="video_width">Output Height:</label>
+        <input type="number" name="video_width" required><br><br>
+
+		<input type = "submit" value="Generate and Download">
+	</form>
+</body>
+</html>
